@@ -50,7 +50,7 @@ for x in range(len(maze)):
 def draw():
     screen.clear()
     # Build the Maze
-    #knowing that I used a dictionnary, I want to check the type of 
+    #knowing that I used a dictionnary, I want to check the type of  
     #the sprite to be sure to insert the correct element  
     for line in range(len(maze)):
         for column in range(len(maze[line])):

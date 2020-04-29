@@ -22,9 +22,7 @@ maze_objects = {
     "2+": "range"
 }
 
-#sprites
-player = Actor(maze_objects["s"],anchor=(0,0))
-#####
+
 
 LAST_X = 0  # stores the last value of x in the maze
 LAST_Y = 0  # stores the last value of Y in the maze
@@ -257,6 +255,7 @@ def followpath(x, y, direction, positionssaved):
         followpath(x + 1, y, Positions.RIGHT, positionssaved)  # right
 
 
+def draw():
 
 # Execution
 readfile("txt/Maze1.txt")
