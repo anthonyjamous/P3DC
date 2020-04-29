@@ -1,5 +1,30 @@
 import enum
+import pgzero, pgzrun
 
+####
+PIXEL_IMAGE = 50
+#it'll allow us to define the dimensions dynamically
+NB_OF_ELEMENT_PER_LINE = 0
+
+maze_objects = {
+    "1" : "block",
+    "0" : "path",
+    "s" : "pacman",
+    "e" : "reward",
+    "b" : "yellow_door",
+    "a" : "yellow_key",
+    "i" : "blue_door",
+    "h" : "blue_key",
+    "c" : "green_door",
+    "d" : "green_key",
+    "g" : "red_door",
+    "f" : "red_key",
+    "2+": "range"
+}
+
+#sprites
+player = Actor(maze_objects["s"],anchor=(0,0))
+#####
 
 LAST_X = 0  # stores the last value of x in the maze
 LAST_Y = 0  # stores the last value of Y in the maze
@@ -51,6 +76,9 @@ def readfile(filename):
         posy = 0  # initialize y
         for line in f:
             linestripped = line.replace(" ", "").rstrip("\n")  # remove "\n from line and white spaces"
+            ####
+            NB_OF_ELEMENT_PER_LINE = len(linestripped)
+            ####
             for character in linestripped:
                 if character is Values.START.value:  # if it is the start position we need to save its coordinates
                     START_X = posx
@@ -69,6 +97,13 @@ def readfile(filename):
             LAST_Y += 1  # store the last y index for later use
     a=3
     #  file closed
+
+    
+    ####
+    #now we can define the Width and HEIght 
+    WIDTH = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
+    HEIGHT = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
+    ####
 
     manageghosts()
     # change the maze depending on the ghost range
@@ -224,4 +259,4 @@ def followpath(x, y, direction, positionssaved):
 
 
 # Execution
-readfile("Maze1.txt")
+readfile("txt/Maze1.txt")
