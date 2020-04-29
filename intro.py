@@ -37,7 +37,7 @@ HEIGHT = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
 player = Actor(maze_objects["s"],anchor=(0,0))
 enemy = Actor("ghost", anchor=(0,0), pos = (3* PIXEL_IMAGE, 6 * PIXEL_IMAGE))
 
-#find the postion of player
+#find the postion of player yes
 for x in range(len(maze)):
     for y in range(len(maze[x])):
         if maze [x][y] == "s":
