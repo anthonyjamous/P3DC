@@ -78,6 +78,7 @@ def readfile(filename):
                positionssaved)  # call the algorithm on the starting position, first time the direction will be empty
     lst = fetchshortestpath()
     print(lst)
+
 def iteratelist(tuple,list,k):
     for i in range (0,k):
         if tuple in list[i]:
@@ -155,7 +156,9 @@ def fetchshortestpath():
             counter = 0
 
     for lst in paths.values():
-        if lst[len(lst) - 1] == (START_X,START_Y):
+        if  (START_X,START_Y) in lst:
+            ind=lst.index((START_X,START_Y))
+            del lst [ ind + 1 : len(lst)]
             return lst
     a = 3
 
@@ -207,7 +210,12 @@ def followpath(x, y, direction, positionssaved):
         return 0
 
     # save the position in array
-    positionssaved.append((x,y))
+    tupletoadd=(x,y)
+    if tupletoadd not in positionssaved:
+        positionssaved.append((x,y))
+    else:
+        return 0
+
 
     if direction != Positions.DOWN:  # don't  try going up if the direction is down,because we were there already
         followpath(x, y - 1, Positions.UP, positionssaved)  # up
@@ -224,4 +232,4 @@ def followpath(x, y, direction, positionssaved):
 
 
 # Execution
-readfile("Maze1.txt")
+readfile("Maze3.txt")
