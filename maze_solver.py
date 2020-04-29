@@ -263,7 +263,7 @@ def followpath(x, y, direction, positionssaved):
         followpath(x + 1, y, Positions.RIGHT, positionssaved)  # right
 
 
-def draw():
+#def draw():
 
 # Execution
 readfile("txt/Maze1.txt")
