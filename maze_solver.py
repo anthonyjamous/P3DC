@@ -331,6 +331,7 @@ def on_key_down(key):
     elif sprite == "ghost" or sprite == "range":
         print("Game Over!")
         exit()
+        #Go out!
     else:
         pass
 
