@@ -18,8 +18,8 @@ maze_objects = {
     "c" : "green_door",
     "d" : "green_key",
     "g" : "red_door",
-    "f" : "red_key"
-    "2+": "range"
+    "f" : "red_key",
+    "2+": "pink_cell"
 }
 
 with open("txt/Maze1.txt","r") as input_file:

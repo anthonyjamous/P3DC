@@ -4,7 +4,7 @@ import pgzero, pgzrun
 ####
 PIXEL_IMAGE = 50
 #it'll allow us to define the dimensions dynamically
-NB_OF_ELEMENT_PER_LINE = 0
+NB_OF_ELEMENT_PER_LINE = 0 
 
 maze_objects = {
     "1" : "block",
@@ -68,6 +68,7 @@ def readfile(filename):
     global DESTINATION_X
     global DESTINATION_Y
     global positionssaved
+    global NB_OF_ELEMENT_PER_LINE
 
     with open(filename, 'r') as f:
         posx = 0  # initialize x
@@ -75,7 +76,7 @@ def readfile(filename):
         for line in f:
             linestripped = line.replace(" ", "").rstrip("\n")  # remove "\n from line and white spaces"
             ####
-            NB_OF_ELEMENT_PER_LINE = len(linestripped)
+            NB_OF_ELEMENT_PER_LINE = len(linestripped) # equiv to 10
             ####
             for character in linestripped:
                 if character is Values.START.value:  # if it is the start position we need to save its coordinates
@@ -94,13 +95,13 @@ def readfile(filename):
             posy += 1  # increment y when moving down
             LAST_Y += 1  # store the last y index for later use
     a=3
+    print(f'IIIIIIIIIINNNNNNNNNNNNSSSSSSIIIDEEE: {NB_OF_ELEMENT_PER_LINE}')
     #  file closed
 
     
     ####
     #now we can define the Width and HEIght 
-    WIDTH = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
-    HEIGHT = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
+
     ####
 
     manageghosts()
@@ -111,6 +112,7 @@ def readfile(filename):
                positionssaved)  # call the algorithm on the starting position, first time the direction will be empty
     lst = fetchshortestpath()
     print(lst)
+print(f'IIIIIIIIIINNNNNNNNNNNNSSSSSSIIIDEEE2222222222: {NB_OF_ELEMENT_PER_LINE}')
 
 def iteratelist(tuple,list,k):
     for i in range (0,k):
@@ -262,9 +264,67 @@ def followpath(x, y, direction, positionssaved):
     if direction != Positions.LEFT:  # don't  try going right if the direction is down,because we were there already
         followpath(x + 1, y, Positions.RIGHT, positionssaved)  # right
 
-
-#def draw():
-
 # Execution
+
+file_has_been_read = 1
 readfile("txt/Maze1.txt")
-readfile("Maze3.txt")
+WIDTH = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
+HEIGHT = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
+#  sprites
+player = Actor(maze_objects["s"],anchor=(0,0), pos=(START_X * PIXEL_IMAGE, START_Y*PIXEL_IMAGE))
+
+
+
+def draw():
+    screen.clear()
+    # Build the Maze
+    #knowing that I used a dictionnary, I want to check the type of  
+    #the sprite to be sure to insert the correct element  
+    
+    for k,v in maze.items():
+        splitted_key_pos = k.split(",")
+        key_x = splitted_key_pos[0]
+        key_y = splitted_key_pos[1]
+        x = int(key_x) * PIXEL_IMAGE
+        y = int(key_y) * PIXEL_IMAGE
+        if v == "s": # starting_point
+            screen.blit(maze_objects["0"], (x,y))
+        else:
+            screen.blit(maze_objects[v], (x,y))
+        
+    player.draw()
+def on_key_down(key):
+
+    row = int(player.y / PIXEL_IMAGE)
+    column = int(player.x / PIXEL_IMAGE)
+    if key == keys.UP:
+        row = row - 1
+    if key == keys.DOWN:
+        row = row + 1
+    if key == keys.LEFT:
+        column = column - 1
+    if key == keys.RIGHT:
+        column = column + 1
+    
+    pos_in_str = str(column)+","+str(row)
+    print(f'Position: {pos_in_str}')
+    print(f'row {row}')
+    print(f'column {column}')
+    print(type(pos_in_str))
+    sprite = maze_objects[maze[pos_in_str]]
+    print(f'sprite found: {sprite}')
+
+    if sprite == "path" or sprite == "pacman":
+        x = column * PIXEL_IMAGE
+        y = row * PIXEL_IMAGE
+        animate(player, duration=0.15, pos=(x,y))
+    elif sprite == "reward":
+        player.x = column * PIXEL_IMAGE
+        player.y = row * PIXEL_IMAGE
+        print("You Reached the end")
+        exit()
+    else:
+        pass
+
+                 
+pgzrun.go()
