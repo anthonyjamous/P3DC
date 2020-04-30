@@ -2,8 +2,6 @@ import enum
 import pgzrun, pgzero
 
 
-
-
 PIXEL_IMAGE = 50
 #it'll allow us to define the dimensions dynamically
 NB_OF_ELEMENT_PER_LINE = 0
@@ -21,12 +19,8 @@ maze_objects = {
     "d" : "green_key",
     "g" : "red_door",
     "f" : "red_key",
-<<<<<<< HEAD
     "r" : "range",
     "z" : "ghost"
-=======
-    "r": "range"
->>>>>>> a2d06ced12a13c1c71196e1af883e5538a5ffc76
 }
 
 
@@ -54,12 +48,8 @@ class Values(enum.Enum):
     BLUE_KEY = 'h'
     YELLOW_DOOR = 'b'
     YELLOW_KEY = 'a'
-<<<<<<< HEAD
-    GHOST = 'z'
-    RANGE_CELL = 'r'
-=======
     GHOST_RANGE = 'r'
->>>>>>> a2d06ced12a13c1c71196e1af883e5538a5ffc76
+    GHOST = 'z'
 
 
 class Positions(enum.Enum):
@@ -233,13 +223,6 @@ def managedoors(destx, desy):
                         fastestkeypaths[doorcolor] = k.copy()
 
 
-
-
-
-
-
-
-
     for lst in paths.values():
         if  (START_X,START_Y) in lst:
             ind=lst.index((START_X,START_Y))
@@ -248,11 +231,10 @@ def managedoors(destx, desy):
 
             fastestpathtoreturn= foundnewdoor(fastestpath, fastestkeypaths)
 
-
-
-
     return fastestpathtoreturn;
     a = 3
+
+
 def foundnewdoor(fastestpath,fastestkeypaths):
     for elmnt in fastestpath:
         fastestpath.remove(elmnt)
@@ -270,8 +252,6 @@ def checkdoorsandfindkeys(fastestpath, elmnt,fastestkeypaths):
         for keyp in keypathofdoor:
             if maze[str(keyp[0]) + "," + str(keyp[1])] in [Values.BLUE_DOOR.value, Values.RED_DOOR.value, Values.YELLOW_DOOR.value,Values.GREEN_DOOR.value]:  # if the fastest route contains a door
                 checkdoorsandfindkeys(fastestpath, keyp,fastestkeypaths)
-
-
 
 
 def manageghosts():
@@ -318,6 +298,7 @@ def manageghosts():
                     if bottomside == '0':
                         maze[strposx + "," + str(posy - i)] = Values.GHOST_RANGE.value  # ghost influence on bottom side
             #break
+    print(maze)
 
 
 # Recursive algorithm
@@ -357,9 +338,7 @@ def followpath(x, y, direction, positionssaved):
 
 
 # Execution
-readfile("txt/Maze4.txt")
 
-file_has_been_read = 1
 readfile("txt/Maze4.txt")
 WIDTH = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
 HEIGHT = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
