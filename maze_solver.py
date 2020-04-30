@@ -7,6 +7,7 @@ import pgzrun, pgzero
 PIXEL_IMAGE = 50
 #it'll allow us to define the dimensions dynamically
 NB_OF_ELEMENT_PER_LINE = 0
+NB_OF_ELEMENT_PER_COLUMN = 0
 
 maze_objects = {
     "1" : "block",
@@ -21,7 +22,8 @@ maze_objects = {
     "d" : "green_key",
     "g" : "red_door",
     "f" : "red_key",
-    "r": "range"
+    "r" : "pink_cell",
+    "z" : "ghost"
 }
 
 
@@ -50,6 +52,7 @@ class Values(enum.Enum):
     YELLOW_DOOR = 'b'
     YELLOW_KEY = 'a'
     GHOST_RANGE = 'r'
+    GHOST = 'z'
 
 
 class Positions(enum.Enum):
@@ -73,6 +76,7 @@ def readfile(filename):
     global positionssaved
     global shortestpath
     global NB_OF_ELEMENT_PER_LINE
+    global NB_OF_ELEMENT_PER_COLUMN
 
     with open(filename, 'r') as f:
         posx = 0  # initialize x
@@ -80,9 +84,15 @@ def readfile(filename):
         for line in f:
             linestripped = line.replace(" ", "").rstrip("\n")  # remove "\n from line and white spaces"
             ####
-            NB_OF_ELEMENT_PER_LINE = len(linestripped)  # equiv to 10
+            #print(f'NUMber_ligne ==> {NB_OF_ELEMENT_PER_LINE}')
+            NB_OF_ELEMENT_PER_LINE += 1  # len(line) of txt
+            #print(f'NUMber_ligne ==> {NB_OF_ELEMENT_PER_LINE}')
             ####
             for character in linestripped:
+
+                #print(f'NUMber_colonne ==> {NB_OF_ELEMENT_PER_COLUMN}')
+
+
                 if character is Values.START.value:  # if it is the start position we need to save its coordinates
                     START_X = posx
                     START_Y = posy
@@ -99,24 +109,22 @@ def readfile(filename):
             posy += 1  # increment y when moving down
             LAST_Y += 1  # store the last y index for later use
     a=3
-    print(f'IIIIIIIIIINNNNNNNNNNNNSSSSSSIIIDEEE: {NB_OF_ELEMENT_PER_LINE}')
+    NB_OF_ELEMENT_PER_COLUMN = len(linestripped)
+    print(f'NUMber_colonne ==> {NB_OF_ELEMENT_PER_COLUMN}')
+
+    #print(f'IIIIIIIIIINNNNNNNNNNNNSSSSSSIIIDEEE: {NB_OF_ELEMENT_PER_LINE}')
     #  file closed
 
-
-    ####
-    #now we can define the Width and HEIght
-
-    ####
-
-    manageghosts()
     # change the maze depending on the ghost range
+    manageghosts()
 
     # findshortestpath(positionssaved,END_X,END_Y)
     followpath(START_X, START_Y, 0,
                positionssaved)  # call the algorithm on the starting position, first time the direction will be empty
     shortestpath = managedoors(DESTINATION_X, DESTINATION_Y)
     print(shortestpath)
-print(f'IIIIIIIIIINNNNNNNNNNNNSSSSSSIIIDEEE2222222222: {NB_OF_ELEMENT_PER_LINE}')
+
+#print(f'IIIIIIIIIINNNNNNNNNNNNSSSSSSIIIDEEE2222222222: {NB_OF_ELEMENT_PER_LINE}')
 
 def iteratelist(tuple,list,k):
     for i in range (0,k):
@@ -239,8 +247,6 @@ def managedoors(destx, desy):
             fastestpathtoreturn= foundnewdoor(fastestpath, fastestkeypaths)
 
 
-
-
     return fastestpathtoreturn;
     a = 3
 def foundnewdoor(fastestpath,fastestkeypaths):
@@ -262,8 +268,6 @@ def checkdoorsandfindkeys(fastestpath, elmnt,fastestkeypaths):
                 checkdoorsandfindkeys(fastestpath, keyp,fastestkeypaths)
 
 
-
-
 def manageghosts():
     for key, value in maze.items():
         if value not in Values._value2member_map_:  # if it is a ghost
@@ -274,7 +278,7 @@ def manageghosts():
             posy = int(keySplit[1])
             strposx = str(posx)
             strposy = str(posy)
-            maze[str(posx) + "," + str(posy)] = value
+            maze[str(posx) + "," + str(posy)] = Values.GHOST.value #substitute the representation of the maze by "z"
             for i in range(1, ghostrange):
                 if posx + i <= LAST_X-1 and posy + i <= LAST_Y-1:
                     if maze[str(posx + i) + "," + str(posy + i)] == '0' and maze[str(posx) + "," + str(posy + 1)] != '0' and maze[str(posx + 1) + "," + str(posy)] != '0':
@@ -307,7 +311,7 @@ def manageghosts():
                     bottomside=maze[strposx + "," + str(posy - i)]
                     if bottomside == '0':
                         maze[strposx + "," + str(posy - i)] = Values.GHOST_RANGE.value  # ghost influence on bottom side
-
+            #break
 
 
 # Recursive algorithm
@@ -324,7 +328,7 @@ def followpath(x, y, direction, positionssaved):
         return 0
     if currentValue is Values.WALL.value:
         return 0
-    if currentValue is Values.GHOST_RANGE.value:
+    if currentValue is Values.GHOST_RANGE.value or currentValue is Values.GHOST.value:
         return 0
 
     # save the position in array
@@ -346,13 +350,15 @@ def followpath(x, y, direction, positionssaved):
 
     if direction != Positions.LEFT:  # don't  try going right if the direction is down,because we were there already
         followpath(x + 1, y, Positions.RIGHT, positionssaved)  # right
-a=3
+
+
 # Execution
 
 file_has_been_read = 1
 readfile("txt/Maze4.txt")
-WIDTH = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
+WIDTH = PIXEL_IMAGE * NB_OF_ELEMENT_PER_COLUMN
 HEIGHT = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
+
 #  sprites
 player = Actor(maze_objects["s"], anchor=(0, 0), pos=(START_X * PIXEL_IMAGE, START_Y * PIXEL_IMAGE))
 
@@ -372,8 +378,9 @@ def draw():
         if v == "s":  # starting_point
             screen.blit(maze_objects["0"], (x, y))
         else:
-            screen.blit(maze_objects[v], (x, y))
 
+            screen.blit(maze_objects[v], (x, y))
+        print(f'Element loaded on screen : {v}')
     player.draw()
 
 
@@ -406,8 +413,12 @@ def on_key_down(key):
         player.y = row * PIXEL_IMAGE
         print("You Reached the end")
         exit()
+    elif sprite == "ghost" or sprite == "pink_cell":
+        print("Game Over!")
+        exit()
+        #Go out!
     else:
         pass
 
 
-#pgzrun.go()
+pgzrun.go()
