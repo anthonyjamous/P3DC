@@ -1,10 +1,12 @@
 import enum
-import pgzero, pgzrun
+import pgzrun, pgzero
 
-####
+
+
+
 PIXEL_IMAGE = 50
 #it'll allow us to define the dimensions dynamically
-NB_OF_ELEMENT_PER_LINE = 0 
+NB_OF_ELEMENT_PER_LINE = 0
 
 maze_objects = {
     "1" : "block",
@@ -19,10 +21,13 @@ maze_objects = {
     "d" : "green_key",
     "g" : "red_door",
     "f" : "red_key",
+<<<<<<< HEAD
     "r" : "range",
     "z" : "ghost"
+=======
+    "r": "range"
+>>>>>>> a2d06ced12a13c1c71196e1af883e5538a5ffc76
 }
-
 
 
 LAST_X = 0  # stores the last value of x in the maze
@@ -33,6 +38,7 @@ DESTINATION_X = 0  # stores the ending position x in the maze
 DESTINATION_Y = 0  # stores the ending position y in the maze
 maze = {}
 positionssaved = []
+shortestpath=[]
 
 
 class Values(enum.Enum):
@@ -48,8 +54,12 @@ class Values(enum.Enum):
     BLUE_KEY = 'h'
     YELLOW_DOOR = 'b'
     YELLOW_KEY = 'a'
+<<<<<<< HEAD
     GHOST = 'z'
     RANGE_CELL = 'r'
+=======
+    GHOST_RANGE = 'r'
+>>>>>>> a2d06ced12a13c1c71196e1af883e5538a5ffc76
 
 
 class Positions(enum.Enum):
@@ -71,6 +81,7 @@ def readfile(filename):
     global DESTINATION_X
     global DESTINATION_Y
     global positionssaved
+    global shortestpath
     global NB_OF_ELEMENT_PER_LINE
 
     with open(filename, 'r') as f:
@@ -79,7 +90,7 @@ def readfile(filename):
         for line in f:
             linestripped = line.replace(" ", "").rstrip("\n")  # remove "\n from line and white spaces"
             ####
-            NB_OF_ELEMENT_PER_LINE = len(linestripped) # equiv to 10
+            NB_OF_ELEMENT_PER_LINE = len(linestripped)  # equiv to 10
             ####
             for character in linestripped:
                 if character is Values.START.value:  # if it is the start position we need to save its coordinates
@@ -101,9 +112,9 @@ def readfile(filename):
     print(f'IIIIIIIIIINNNNNNNNNNNNSSSSSSIIIDEEE: {NB_OF_ELEMENT_PER_LINE}')
     #  file closed
 
-    
+
     ####
-    #now we can define the Width and HEIght 
+    #now we can define the Width and HEIght
 
     ####
 
@@ -113,8 +124,8 @@ def readfile(filename):
     # findshortestpath(positionssaved,END_X,END_Y)
     followpath(START_X, START_Y, 0,
                positionssaved)  # call the algorithm on the starting position, first time the direction will be empty
-    lst = fetchshortestpath()
-    print(lst)
+    shortestpath = managedoors(DESTINATION_X, DESTINATION_Y)
+    print(shortestpath)
 print(f'IIIIIIIIIINNNNNNNNNNNNSSSSSSIIIDEEE2222222222: {NB_OF_ELEMENT_PER_LINE}')
 
 def iteratelist(tuple,list,k):
@@ -124,16 +135,16 @@ def iteratelist(tuple,list,k):
     return 1
 
 
-def fetchshortestpath():
+def fetchshortestpath(destx, desy):
     i = 0  # number of steps
     j = 1  # number of paths
     paths = {}
-    paths[0]=[(DESTINATION_X,DESTINATION_Y)]
+    paths[0]=[(destx,desy)]
 
 
     counter = 0
-    x = DESTINATION_X
-    y = DESTINATION_Y
+    x = destx
+    y = desy
     while i <= len(positionssaved):  # until we go from the end point to the starting point
         i += 1
         vai = 1
@@ -192,13 +203,75 @@ def fetchshortestpath():
 
 
             counter = 0
+    return paths
+
+def managedoors(destx, desy):
+    paths = fetchshortestpath(destx, desy)
+    #store key paths
+    keypaths = {}
+    fastestpath=[]
+    fastestkeypaths={}
+    for lst  in paths.values():
+        for elmnt in lst:
+            if maze[str(elmnt[0]) + "," + str(elmnt[1])] in [Values.BLUE_KEY.value, Values.RED_KEY.value, Values.YELLOW_KEY.value, Values.GREEN_KEY.value]:  # if keys are found , store them
+                keycolor=maze[str(elmnt[0]) + "," + str(elmnt[1])]
+                keypaths=fetchshortestpath(elmnt[0], elmnt[1])
+
+                for k in keypaths.values():
+                    if (START_X, START_Y) in k:
+                        ind = k.index((START_X, START_Y))
+                        del k[ind + 1: len(k)]  # found the fastest route without considering  doors
+                        doorcolor = Values.RED_KEY.value
+                        if keycolor == Values.RED_KEY.value:
+                            doorcolor = Values.RED_DOOR.value
+                        if keycolor == Values.BLUE_KEY.value:
+                            doorcolor = Values.BLUE_DOOR.value
+                        if keycolor == Values.GREEN_KEY.value:
+                            doorcolor = Values.GREEN_DOOR.value
+                        if keycolor == Values.YELLOW_KEY.value:
+                            doorcolor = Values.YELLOW_DOOR.value
+                        fastestkeypaths[doorcolor] = k.copy()
+
+
+
+
+
+
+
+
 
     for lst in paths.values():
         if  (START_X,START_Y) in lst:
             ind=lst.index((START_X,START_Y))
-            del lst [ ind + 1 : len(lst)]
-            return lst
+            del lst [ ind + 1 : len(lst)] #found the fastest route without considering  doors
+            fastestpath=lst.copy()
+
+            fastestpathtoreturn= foundnewdoor(fastestpath, fastestkeypaths)
+
+
+
+
+    return fastestpathtoreturn;
     a = 3
+def foundnewdoor(fastestpath,fastestkeypaths):
+    for elmnt in fastestpath:
+        fastestpath.remove(elmnt)
+        checkdoorsandfindkeys(fastestpath,elmnt,fastestkeypaths)
+
+    return fastestpath
+
+
+def checkdoorsandfindkeys(fastestpath, elmnt,fastestkeypaths):
+    if maze[str(elmnt[0]) + "," + str(elmnt[1])] in [Values.BLUE_DOOR.value, Values.RED_DOOR.value,Values.YELLOW_DOOR.value,Values.GREEN_DOOR.value]:  # if the fastest route contains a door
+        doorcolor = maze[str(elmnt[0]) + "," + str(elmnt[1])]
+        keypathofdoor = fastestkeypaths[doorcolor]
+        fastestpath.insert(0, keypathofdoor)
+
+        for keyp in keypathofdoor:
+            if maze[str(keyp[0]) + "," + str(keyp[1])] in [Values.BLUE_DOOR.value, Values.RED_DOOR.value, Values.YELLOW_DOOR.value,Values.GREEN_DOOR.value]:  # if the fastest route contains a door
+                checkdoorsandfindkeys(fastestpath, keyp,fastestkeypaths)
+
+
 
 
 def manageghosts():
@@ -213,24 +286,39 @@ def manageghosts():
             strposy = str(posy)
             maze[str(posx) + "," + str(posy)] = Values.GHOST.value #substitute the representation of the maze by "z"
             for i in range(1, ghostrange):
-                if posx + i <= LAST_X and posy + i <= LAST_Y:
-                    maze[str(posx + i) + "," + str(posy + i)] = Values.RANGE_CELL.value  # ghost influence on diaguonal  top right side
-                if posx + i >= START_X and posy + i >= START_Y:
-                    maze[str(posx - i) + "," + str(posy - i)] = Values.RANGE_CELL.value  # ghost influence on diaguonal  bottom left side
-                if posx + i >= START_X and posy + i <= LAST_Y:
-                    maze[str(posx - i) + "," + str(posy + i)] = Values.RANGE_CELL.value  # ghost influence on diaguonal top left  side
-                if posx + i <= LAST_X and posy + i >= START_Y:
-                    maze[str(posx + i) + "," + str(posy - i)] = Values.RANGE_CELL.value  # ghost influence on diaguonal bottom right  side
-                if posx + i <= LAST_X:
-                    maze[str(posx + i) + "," + strposy] = Values.RANGE_CELL.value  # ghost influence on left side
-                if posy + i <= LAST_Y:
-                    maze[strposx + "," + str(posy + i)] = Values.RANGE_CELL.value  # ghost influence on top side
-                if posx + i >= START_X:
-                    maze[str(posx - i) + "," + strposy] = Values.RANGE_CELL.value  # ghost influence on right side
-                if posy + i >= START_Y:
-                    maze[strposx + "," + str(posy - i)] = Values.RANGE_CELL.value  # ghost influence on top side
-            break
-    print(maze)
+                if posx + i <= LAST_X-1 and posy + i <= LAST_Y-1:
+                    if maze[str(posx + i) + "," + str(posy + i)] == '0':
+                        diagtopright = value  # ghost influence on diaguonal  top right side
+                if posx - i >= 0 and posy - i >= 0:
+                    diagbotleft=maze[str(posx - i) + "," + str(posy - i)]
+                    if diagbotleft == '0':
+                        maze[str(posx - i) + "," + str(posy - i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal  bottom left side
+                if posx - i >= 0 and posy + i <= LAST_Y -1:
+                    diagtopleft = maze[str(posx - i) + "," + str(posy + i)]
+                    if diagtopleft == '0':
+                        maze[str(posx - i) + "," + str(posy + i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal top left  side
+                if posx + i <= LAST_X-1 and posy - i >= 0:
+                    diagbotright=maze[str(posx + i) + "," + str(posy - i)]
+                    if diagbotright == '0':
+                        maze[str(posx + i) + "," + str(posy - i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal bottom right  side
+                if posx + i <= LAST_X-1:
+                    leftside=maze[str(posx + i) + "," + strposy]
+                    if leftside== '0' :
+                        maze[str(posx + i) + "," + strposy] = Values.GHOST_RANGE.value   # ghost influence on left side
+                if posy + i <= LAST_Y -1:
+                    topside=maze[strposx + "," + str(posy + i)]
+                    if topside == '0':
+                        maze[strposx + "," + str(posy + i)] = Values.GHOST_RANGE.value   # ghost influence on top side
+                if posx - i >= 0:
+                    rightside=  maze[str(posx - i) + "," + strposy]
+                    if rightside == '0':
+                        maze[str(posx - i) + "," + strposy] = Values.GHOST_RANGE.value   # ghost influence on right side
+                if posy - i >= 0:
+                    bottomside=maze[strposx + "," + str(posy - i)]
+                    if bottomside == '0':
+                        maze[strposx + "," + str(posy - i)] = Values.GHOST_RANGE.value  # ghost influence on bottom side
+            #break
+
 
 # Recursive algorithm
 # A recursive algorithm will be launched starting from the first position. The method will call 4  recursive calls to followpath,
@@ -268,38 +356,39 @@ def followpath(x, y, direction, positionssaved):
         followpath(x + 1, y, Positions.RIGHT, positionssaved)  # right
 
 
-
 # Execution
 readfile("txt/Maze4.txt")
 
+file_has_been_read = 1
+readfile("txt/Maze4.txt")
 WIDTH = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
 HEIGHT = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
 
 #  sprites
-player = Actor(maze_objects["s"],anchor=(0,0), pos=(START_X * PIXEL_IMAGE, START_Y*PIXEL_IMAGE))
-
+player = Actor(maze_objects["s"], anchor=(0, 0), pos=(START_X * PIXEL_IMAGE, START_Y * PIXEL_IMAGE))
 
 
 def draw():
     screen.clear()
     # Build the Maze
-    #knowing that I used a dictionnary, I want to check the type of  
-    #the sprite to be sure to insert the correct element  
-    
-    for k,v in maze.items():
+    # knowing that I used a dictionnary, I want to check the type of
+    # the sprite to be sure to insert the correct element
+
+    for k, v in maze.items():
         splitted_key_pos = k.split(",")
         key_x = splitted_key_pos[0]
         key_y = splitted_key_pos[1]
         x = int(key_x) * PIXEL_IMAGE
         y = int(key_y) * PIXEL_IMAGE
-        if v == "s": # starting_point
-            screen.blit(maze_objects["0"], (x,y))
+        if v == "s":  # starting_point
+            screen.blit(maze_objects["0"], (x, y))
         else:
-            screen.blit(maze_objects[v], (x,y))
-        
-    player.draw()
-def on_key_down(key):
+            screen.blit(maze_objects[v], (x, y))
 
+    player.draw()
+
+
+def on_key_down(key):
     row = int(player.y / PIXEL_IMAGE)
     column = int(player.x / PIXEL_IMAGE)
     if key == keys.UP:
@@ -310,8 +399,8 @@ def on_key_down(key):
         column = column - 1
     if key == keys.RIGHT:
         column = column + 1
-    
-    pos_in_str = str(column)+","+str(row)
+
+    pos_in_str = str(column) + "," + str(row)
     print(f'Position: {pos_in_str}')
     print(f'row {row}')
     print(f'column {column}')
@@ -322,7 +411,7 @@ def on_key_down(key):
     if sprite == "path" or sprite == "pacman":
         x = column * PIXEL_IMAGE
         y = row * PIXEL_IMAGE
-        animate(player, duration=0.15, pos=(x,y))
+        animate(player, duration=0.15, pos=(x, y))
     elif sprite == "reward":
         player.x = column * PIXEL_IMAGE
         player.y = row * PIXEL_IMAGE
@@ -335,5 +424,5 @@ def on_key_down(key):
     else:
         pass
 
-                 
+
 pgzrun.go()
