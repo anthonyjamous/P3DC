@@ -409,4 +409,4 @@ def on_key_down(key):
         pass
 
 
-#pgzrun.go()
+pgzrun.go()
