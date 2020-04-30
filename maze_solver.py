@@ -19,7 +19,8 @@ maze_objects = {
     "d" : "green_key",
     "g" : "red_door",
     "f" : "red_key",
-    "2+": "range"
+    "r" : "range",
+    "z" : "ghost"
 }
 
 
@@ -47,6 +48,8 @@ class Values(enum.Enum):
     BLUE_KEY = 'h'
     YELLOW_DOOR = 'b'
     YELLOW_KEY = 'a'
+    GHOST = 'z'
+    RANGE_CELL = 'r'
 
 
 class Positions(enum.Enum):
@@ -200,7 +203,7 @@ def fetchshortestpath():
 
 def manageghosts():
     for key, value in maze.items():
-        if value not in Values._value2member_map_:  # if it is a ghost
+        if value not in Values._value2member_map_:  # if it's a ghost
             ghostrange = int(value)
             # split key
             keySplit = key.split(",")
@@ -208,26 +211,26 @@ def manageghosts():
             posy = int(keySplit[1])
             strposx = str(posx)
             strposy = str(posy)
-            maze[str(posx) + "," + str(posy)] = value
+            maze[str(posx) + "," + str(posy)] = Values.GHOST.value #substitute the representation of the maze by "z"
             for i in range(1, ghostrange):
                 if posx + i <= LAST_X and posy + i <= LAST_Y:
-                    maze[str(posx + i) + "," + str(posy + i)] = value  # ghost influence on diaguonal  top right side
+                    maze[str(posx + i) + "," + str(posy + i)] = Values.RANGE_CELL.value  # ghost influence on diaguonal  top right side
                 if posx + i >= START_X and posy + i >= START_Y:
-                    maze[str(posx - i) + "," + str(posy - i)] = value  # ghost influence on diaguonal  bottom left side
+                    maze[str(posx - i) + "," + str(posy - i)] = Values.RANGE_CELL.value  # ghost influence on diaguonal  bottom left side
                 if posx + i >= START_X and posy + i <= LAST_Y:
-                    maze[str(posx - i) + "," + str(posy + i)] = value  # ghost influence on diaguonal top left  side
+                    maze[str(posx - i) + "," + str(posy + i)] = Values.RANGE_CELL.value  # ghost influence on diaguonal top left  side
                 if posx + i <= LAST_X and posy + i >= START_Y:
-                    maze[str(posx + i) + "," + str(posy - i)] = value  # ghost influence on diaguonal bottom right  side
+                    maze[str(posx + i) + "," + str(posy - i)] = Values.RANGE_CELL.value  # ghost influence on diaguonal bottom right  side
                 if posx + i <= LAST_X:
-                    maze[str(posx + i) + "," + strposy] = value  # ghost influence on left side
+                    maze[str(posx + i) + "," + strposy] = Values.RANGE_CELL.value  # ghost influence on left side
                 if posy + i <= LAST_Y:
-                    maze[strposx + "," + str(posy + i)] = value  # ghost influence on top side
+                    maze[strposx + "," + str(posy + i)] = Values.RANGE_CELL.value  # ghost influence on top side
                 if posx + i >= START_X:
-                    maze[str(posx - i) + "," + strposy] = value  # ghost influence on right side
+                    maze[str(posx - i) + "," + strposy] = Values.RANGE_CELL.value  # ghost influence on right side
                 if posy + i >= START_Y:
-                    maze[strposx + "," + str(posy - i)] = value  # ghost influence on top side
+                    maze[strposx + "," + str(posy - i)] = Values.RANGE_CELL.value  # ghost influence on top side
             break
-
+    print(maze)
 
 # Recursive algorithm
 # A recursive algorithm will be launched starting from the first position. The method will call 4  recursive calls to followpath,
@@ -264,12 +267,14 @@ def followpath(x, y, direction, positionssaved):
     if direction != Positions.LEFT:  # don't  try going right if the direction is down,because we were there already
         followpath(x + 1, y, Positions.RIGHT, positionssaved)  # right
 
-# Execution
 
-file_has_been_read = 1
-readfile("txt/Maze1.txt")
+
+# Execution
+readfile("txt/Maze4.txt")
+
 WIDTH = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
 HEIGHT = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
+
 #  sprites
 player = Actor(maze_objects["s"],anchor=(0,0), pos=(START_X * PIXEL_IMAGE, START_Y*PIXEL_IMAGE))
 
@@ -322,6 +327,9 @@ def on_key_down(key):
         player.x = column * PIXEL_IMAGE
         player.y = row * PIXEL_IMAGE
         print("You Reached the end")
+        exit()
+    elif sprite == "ghost" or sprite == "range":
+        print("Game Over!")
         exit()
     else:
         pass
