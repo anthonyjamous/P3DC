@@ -1,8 +1,9 @@
 import enum
-import pgzero, pgzrun
+import pgzrun, pgzero
 
 
-####
+
+
 PIXEL_IMAGE = 50
 #it'll allow us to define the dimensions dynamically
 NB_OF_ELEMENT_PER_LINE = 0
@@ -20,7 +21,7 @@ maze_objects = {
     "d" : "green_key",
     "g" : "red_door",
     "f" : "red_key",
-    "2+": "range"
+    "r": "range"
 }
 
 
@@ -348,7 +349,7 @@ def followpath(x, y, direction, positionssaved):
 # Execution
 
 file_has_been_read = 1
-readfile("txt/Maze1.txt")
+readfile("txt/Maze4.txt")
 WIDTH = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
 HEIGHT = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
 #  sprites
@@ -408,4 +409,4 @@ def on_key_down(key):
         pass
 
 
-pgzrun.go()
+#pgzrun.go()
