@@ -211,7 +211,7 @@ def managedoors(destx, desy):
                     if (START_X, START_Y) in k:
                         ind = k.index((START_X, START_Y))
                         del k[ind + 1: len(k)]  # found the fastest route without considering  doors
-                        doorcolor = Values.RED_KEY.value
+
                         if keycolor == Values.RED_KEY.value:
                             doorcolor = Values.RED_DOOR.value
                         if keycolor == Values.BLUE_KEY.value:
@@ -277,19 +277,19 @@ def manageghosts():
             maze[str(posx) + "," + str(posy)] = value
             for i in range(1, ghostrange):
                 if posx + i <= LAST_X-1 and posy + i <= LAST_Y-1:
-                    if maze[str(posx + i) + "," + str(posy + i)] == '0':
+                    if maze[str(posx + i) + "," + str(posy + i)] == '0' and maze[str(posx) + "," + str(posy + 1)] != '0' and maze[str(posx + 1) + "," + str(posy)] != '0':
                         diagtopright = value  # ghost influence on diaguonal  top right side
                 if posx - i >= 0 and posy - i >= 0:
                     diagbotleft=maze[str(posx - i) + "," + str(posy - i)]
-                    if diagbotleft == '0':
+                    if diagbotleft == '0' and maze[str(posx) + "," + str(posy + 1)] != '0' and maze[str(posx - 1) + "," + str(posy)] != '0':
                         maze[str(posx - i) + "," + str(posy - i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal  bottom left side
                 if posx - i >= 0 and posy + i <= LAST_Y -1:
                     diagtopleft = maze[str(posx - i) + "," + str(posy + i)]
-                    if diagtopleft == '0':
+                    if diagtopleft == '0' and maze[str(posx - 1) + "," + str(posy - 1)] != '0' and maze[str(posx + 1) + "," + str(posy)] != '0':
                         maze[str(posx - i) + "," + str(posy + i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal top left  side
                 if posx + i <= LAST_X-1 and posy - i >= 0:
                     diagbotright=maze[str(posx + i) + "," + str(posy - i)]
-                    if diagbotright == '0':
+                    if diagbotright == '0' and  maze[str(posx + 1) + "," + str(posy + 1)] != '0' and maze[str(posx + 1) + "," + str(posy)] != '0':
                         maze[str(posx + i) + "," + str(posy - i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal bottom right  side
                 if posx + i <= LAST_X-1:
                     leftside=maze[str(posx + i) + "," + strposy]
@@ -307,7 +307,7 @@ def manageghosts():
                     bottomside=maze[strposx + "," + str(posy - i)]
                     if bottomside == '0':
                         maze[strposx + "," + str(posy - i)] = Values.GHOST_RANGE.value  # ghost influence on bottom side
-            #break
+
 
 
 # Recursive algorithm
@@ -323,6 +323,8 @@ def followpath(x, y, direction, positionssaved):
     if currentValue not in Values._value2member_map_:
         return 0
     if currentValue is Values.WALL.value:
+        return 0
+    if currentValue is Values.GHOST_RANGE.value:
         return 0
 
     # save the position in array
@@ -344,8 +346,7 @@ def followpath(x, y, direction, positionssaved):
 
     if direction != Positions.LEFT:  # don't  try going right if the direction is down,because we were there already
         followpath(x + 1, y, Positions.RIGHT, positionssaved)  # right
-
-
+a=3
 # Execution
 
 file_has_been_read = 1
@@ -409,4 +410,4 @@ def on_key_down(key):
         pass
 
 
-pgzrun.go()
+#pgzrun.go()
