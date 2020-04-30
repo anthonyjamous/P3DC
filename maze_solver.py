@@ -9,6 +9,7 @@ DESTINATION_X = 0  # stores the ending position x in the maze
 DESTINATION_Y = 0  # stores the ending position y in the maze
 maze = {}
 positionssaved = []
+shortestpath=[]
 
 
 class Values(enum.Enum):
@@ -24,6 +25,7 @@ class Values(enum.Enum):
     BLUE_KEY = 'h'
     YELLOW_DOOR = 'b'
     YELLOW_KEY = 'a'
+    GHOST_RANGE = 'r'
 
 
 class Positions(enum.Enum):
@@ -45,6 +47,7 @@ def readfile(filename):
     global DESTINATION_X
     global DESTINATION_Y
     global positionssaved
+    global shortestpath
 
     with open(filename, 'r') as f:
         posx = 0  # initialize x
@@ -76,8 +79,8 @@ def readfile(filename):
     # findshortestpath(positionssaved,END_X,END_Y)
     followpath(START_X, START_Y, 0,
                positionssaved)  # call the algorithm on the starting position, first time the direction will be empty
-    lst = fetchshortestpath()
-    print(lst)
+    shortestpath =managedoors(DESTINATION_X,DESTINATION_Y)
+    print(shortestpath)
 
 def iteratelist(tuple,list,k):
     for i in range (0,k):
@@ -86,16 +89,16 @@ def iteratelist(tuple,list,k):
     return 1
 
 
-def fetchshortestpath():
+def fetchshortestpath(destx, desy):
     i = 0  # number of steps
     j = 1  # number of paths
     paths = {}
-    paths[0]=[(DESTINATION_X,DESTINATION_Y)]
+    paths[0]=[(destx,desy)]
 
 
     counter = 0
-    x = DESTINATION_X
-    y = DESTINATION_Y
+    x = destx
+    y = desy
     while i <= len(positionssaved):  # until we go from the end point to the starting point
         i += 1
         vai = 1
@@ -154,13 +157,74 @@ def fetchshortestpath():
 
 
             counter = 0
+    return paths
+
+
+def managedoors(destx, desy):
+    paths = fetchshortestpath(destx, desy)
+    #store key paths
+    keypaths = {}
+    fastestpath=[]
+    fastestkeypaths={}
+    for lst  in paths.values():
+        for elmnt in lst:
+            if maze[str(elmnt[0]) + "," + str(elmnt[1])] in [Values.BLUE_KEY.value, Values.RED_KEY.value, Values.YELLOW_KEY.value, Values.GREEN_KEY.value]:  # if keys are found , store them
+                keycolor=maze[str(elmnt[0]) + "," + str(elmnt[1])]
+                keypaths=fetchshortestpath(elmnt[0], elmnt[1])
+
+                for k in keypaths.values():
+                    if (START_X, START_Y) in k:
+                        ind = k.index((START_X, START_Y))
+                        del k[ind + 1: len(k)]  # found the fastest route without considering  doors
+                        doorcolor = Values.RED_KEY.value
+                        if keycolor == Values.RED_KEY.value:
+                            doorcolor = Values.RED_DOOR.value
+                        if keycolor == Values.BLUE_KEY.value:
+                            doorcolor = Values.BLUE_DOOR.value
+                        if keycolor == Values.GREEN_KEY.value:
+                            doorcolor = Values.GREEN_DOOR.value
+                        if keycolor == Values.YELLOW_KEY.value:
+                            doorcolor = Values.YELLOW_DOOR.value
+                        fastestkeypaths[doorcolor] = k.copy()
+
+
+
+
+
+
+
+
 
     for lst in paths.values():
         if  (START_X,START_Y) in lst:
             ind=lst.index((START_X,START_Y))
-            del lst [ ind + 1 : len(lst)]
-            return lst
+            del lst [ ind + 1 : len(lst)] #found the fastest route without considering  doors
+            fastestpath=lst.copy()
+
+            fastestpathtoreturn= foundnewdoor(fastestpath, fastestkeypaths)
+
+
+
+
+    return fastestpathtoreturn;
     a = 3
+def foundnewdoor(fastestpath,fastestkeypaths):
+    for elmnt in fastestpath:
+        fastestpath.remove(elmnt)
+        checkdoorsandfindkeys(fastestpath,elmnt,fastestkeypaths)
+
+    return fastestpath
+
+
+def checkdoorsandfindkeys(fastestpath, elmnt,fastestkeypaths):
+    if maze[str(elmnt[0]) + "," + str(elmnt[1])] in [Values.BLUE_DOOR.value, Values.RED_DOOR.value,Values.YELLOW_DOOR.value,Values.GREEN_DOOR.value]:  # if the fastest route contains a door
+        doorcolor = maze[str(elmnt[0]) + "," + str(elmnt[1])]
+        keypathofdoor = fastestkeypaths[doorcolor]
+        fastestpath.insert(0, keypathofdoor)
+
+        for keyp in keypathofdoor:
+            if maze[str(keyp[0]) + "," + str(keyp[1])] in [Values.BLUE_DOOR.value, Values.RED_DOOR.value, Values.YELLOW_DOOR.value,Values.GREEN_DOOR.value]:  # if the fastest route contains a door
+                checkdoorsandfindkeys(fastestpath, keyp,fastestkeypaths)
 
 
 def manageghosts():
@@ -175,23 +239,38 @@ def manageghosts():
             strposy = str(posy)
             maze[str(posx) + "," + str(posy)] = value
             for i in range(1, ghostrange):
-                if posx + i <= LAST_X and posy + i <= LAST_Y:
-                    maze[str(posx + i) + "," + str(posy + i)] = value  # ghost influence on diaguonal  top right side
-                if posx + i >= START_X and posy + i >= START_Y:
-                    maze[str(posx - i) + "," + str(posy - i)] = value  # ghost influence on diaguonal  bottom left side
-                if posx + i >= START_X and posy + i <= LAST_Y:
-                    maze[str(posx - i) + "," + str(posy + i)] = value  # ghost influence on diaguonal top left  side
-                if posx + i <= LAST_X and posy + i >= START_Y:
-                    maze[str(posx + i) + "," + str(posy - i)] = value  # ghost influence on diaguonal bottom right  side
-                if posx + i <= LAST_X:
-                    maze[str(posx + i) + "," + strposy] = value  # ghost influence on left side
-                if posy + i <= LAST_Y:
-                    maze[strposx + "," + str(posy + i)] = value  # ghost influence on top side
-                if posx + i >= START_X:
-                    maze[str(posx - i) + "," + strposy] = value  # ghost influence on right side
-                if posy + i >= START_Y:
-                    maze[strposx + "," + str(posy - i)] = value  # ghost influence on top side
-            break
+                if posx + i <= LAST_X-1 and posy + i <= LAST_Y-1:
+                    if maze[str(posx + i) + "," + str(posy + i)] == '0':
+                        diagtopright = value  # ghost influence on diaguonal  top right side
+                if posx - i >= 0 and posy - i >= 0:
+                    diagbotleft=maze[str(posx - i) + "," + str(posy - i)]
+                    if diagbotleft == '0':
+                        maze[str(posx - i) + "," + str(posy - i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal  bottom left side
+                if posx - i >= 0 and posy + i <= LAST_Y -1:
+                    diagtopleft = maze[str(posx - i) + "," + str(posy + i)]
+                    if diagtopleft == '0':
+                        maze[str(posx - i) + "," + str(posy + i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal top left  side
+                if posx + i <= LAST_X-1 and posy - i >= 0:
+                    diagbotright=maze[str(posx + i) + "," + str(posy - i)]
+                    if diagbotright == '0':
+                        maze[str(posx + i) + "," + str(posy - i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal bottom right  side
+                if posx + i <= LAST_X-1:
+                    leftside=maze[str(posx + i) + "," + strposy]
+                    if leftside== '0' :
+                        maze[str(posx + i) + "," + strposy] = Values.GHOST_RANGE.value   # ghost influence on left side
+                if posy + i <= LAST_Y -1:
+                    topside=maze[strposx + "," + str(posy + i)]
+                    if topside == '0':
+                        maze[strposx + "," + str(posy + i)] = Values.GHOST_RANGE.value   # ghost influence on top side
+                if posx - i >= 0:
+                    rightside=  maze[str(posx - i) + "," + strposy]
+                    if rightside == '0':
+                        maze[str(posx - i) + "," + strposy] = Values.GHOST_RANGE.value   # ghost influence on right side
+                if posy - i >= 0:
+                    bottomside=maze[strposx + "," + str(posy - i)]
+                    if bottomside == '0':
+                        maze[strposx + "," + str(posy - i)] = Values.GHOST_RANGE.value  # ghost influence on bottom side
+            #break
 
 
 # Recursive algorithm
@@ -232,4 +311,4 @@ def followpath(x, y, direction, positionssaved):
 
 
 # Execution
-readfile("Maze3.txt")
+readfile("Maze4.txt")
