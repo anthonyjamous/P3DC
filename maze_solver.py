@@ -228,7 +228,7 @@ def managedoors(destx, desy):
                             doorcolor = Values.GREEN_DOOR.value
                         if keycolor == Values.YELLOW_KEY.value:
                             doorcolor = Values.YELLOW_DOOR.value
-                        fastestkeypaths[doorcolor] = k.copy()
+                        fastestkeypaths[doorcolor] = k.copy() # find fastest paths from keys to starting position and store it in fastestkeypaths
 
 
 
@@ -241,7 +241,7 @@ def managedoors(destx, desy):
     for lst in paths.values():
         if  (START_X,START_Y) in lst:
             ind=lst.index((START_X,START_Y))
-            del lst [ ind + 1 : len(lst)] #found the fastest route without considering  doors
+            del lst [ ind + 1 : len(lst)]
             fastestpath=lst.copy()
 
             fastestpathtoreturn= foundnewdoor(fastestpath, fastestkeypaths)
@@ -280,37 +280,38 @@ def manageghosts():
             strposy = str(posy)
             maze[str(posx) + "," + str(posy)] = Values.GHOST.value #substitute the representation of the maze by "z"
             for i in range(1, ghostrange):
-                if posx + i <= LAST_X-1 and posy + i <= LAST_Y-1:
-                    if maze[str(posx + i) + "," + str(posy + i)] == '0' and maze[str(posx) + "," + str(posy + 1)] != '0' and maze[str(posx + 1) + "," + str(posy)] != '0':
+                if posx + i <= LAST_X-1 and posy - i >=0:
+                    if not (maze[str(posx + i) + "," + str(posy - i)] != '0' or maze[str(posx + i -1) + "," + str(posy - i + 1)] == Values.WALL.value or (maze[str(posx) + "," + str(posy - 1)] == '1' and maze[str(posx + 1) + "," + str(posy)] == '1')):
+
                         diagtopright = value  # ghost influence on diaguonal  top right side
-                if posx - i >= 0 and posy - i >= 0:
-                    diagbotleft=maze[str(posx - i) + "," + str(posy - i)]
-                    if diagbotleft == '0' and maze[str(posx) + "," + str(posy + 1)] != '0' and maze[str(posx - 1) + "," + str(posy)] != '0':
-                        maze[str(posx - i) + "," + str(posy - i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal  bottom left side
-                if posx - i >= 0 and posy + i <= LAST_Y -1:
-                    diagtopleft = maze[str(posx - i) + "," + str(posy + i)]
-                    if diagtopleft == '0' and maze[str(posx - 1) + "," + str(posy - 1)] != '0' and maze[str(posx + 1) + "," + str(posy)] != '0':
-                        maze[str(posx - i) + "," + str(posy + i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal top left  side
-                if posx + i <= LAST_X-1 and posy - i >= 0:
-                    diagbotright=maze[str(posx + i) + "," + str(posy - i)]
-                    if diagbotright == '0' and  maze[str(posx + 1) + "," + str(posy + 1)] != '0' and maze[str(posx + 1) + "," + str(posy)] != '0':
-                        maze[str(posx + i) + "," + str(posy - i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal bottom right  side
+                if posx - i >= 0 and posy + i <=LAST_Y-1:
+                    diagbotleft=maze[str(posx - i) + "," + str(posy + i)]
+                    if not (diagbotleft != '0' or maze[str(posx - i +1) + "," + str(posy + i -1)] == Values.WALL.value  or (maze[str(posx) + "," + str(posy + 1)] == '1' and maze[str(posx - 1) + "," + str(posy)] == '1')):
+                        maze[str(posx - i) + "," + str(posy + i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal  bottom left side
+                if posx - i >= 0 and posy - i >=0:
+                    diagtopleft = maze[str(posx - i) + "," + str(posy - i)]
+                    if not(diagtopleft != '0' or maze[str(posx - i + 1) + "," + str(posy - i + 1)] == Values.WALL.value  or (maze[str(posx) + "," + str(posy - 1)] == '1' and maze[str(posx - 1) + "," + str(posy)] == '1')):
+                        maze[str(posx - i) + "," + str(posy - i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal top left  side
+                if posx + i <= LAST_X-1 and posy + i <= LAST_Y-1:
+                    diagbotright=maze[str(posx + i) + "," + str(posy + i)]
+                    if not(diagbotright != '0' or maze[str(posx) + "," + str(posy)] == Values.WALL.value  or  (maze[str(posx) + "," + str(posy + 1)] == '1' and maze[str(posx + 1) + "," + str(posy)] == '1')):
+                        maze[str(posx + i) + "," + str(posy + i)] = Values.GHOST_RANGE.value   # ghost influence on diaguonal bottom right  side
+                if posx - i >=0:
+                    leftside=maze[str(posx - i) + "," + strposy]
+                    if leftside== '0' and maze[str(posx - i + 1) + "," + str(posy)] !=Values.WALL.value :
+                        maze[str(posx - i) + "," + strposy] = Values.GHOST_RANGE.value   # ghost influence on left side
+                if posy - i >=0:
+                    topside=maze[strposx + "," + str(posy - i)]
+                    if topside == '0' and maze[str(posx) + "," + str(posy - i + 1)] !=Values.WALL.value :
+                        maze[strposx + "," + str(posy - i)] = Values.GHOST_RANGE.value   # ghost influence on top side
                 if posx + i <= LAST_X-1:
-                    leftside=maze[str(posx + i) + "," + strposy]
-                    if leftside== '0' :
-                        maze[str(posx + i) + "," + strposy] = Values.GHOST_RANGE.value   # ghost influence on left side
-                if posy + i <= LAST_Y -1:
-                    topside=maze[strposx + "," + str(posy + i)]
-                    if topside == '0':
-                        maze[strposx + "," + str(posy + i)] = Values.GHOST_RANGE.value   # ghost influence on top side
-                if posx - i >= 0:
-                    rightside=  maze[str(posx - i) + "," + strposy]
-                    if rightside == '0':
-                        maze[str(posx - i) + "," + strposy] = Values.GHOST_RANGE.value   # ghost influence on right side
-                if posy - i >= 0:
-                    bottomside=maze[strposx + "," + str(posy - i)]
-                    if bottomside == '0':
-                        maze[strposx + "," + str(posy - i)] = Values.GHOST_RANGE.value  # ghost influence on bottom side
+                    rightside=  maze[str(posx + i) + "," + strposy]
+                    if rightside == '0' and maze[str(posx + i -1) + "," + str(posy)] !=Values.WALL.value :
+                        maze[str(posx + i) + "," + strposy] = Values.GHOST_RANGE.value   # ghost influence on right side
+                if posy + i <= LAST_Y-1:
+                    bottomside=maze[strposx + "," + str(posy + i)]
+                    if bottomside == '0' and maze[str(posx) + "," + str(posy + i - 1)] !=Values.WALL.value :
+                        maze[strposx + "," + str(posy + i)] = Values.GHOST_RANGE.value  # ghost influence on bottom side
             #break
 
 
