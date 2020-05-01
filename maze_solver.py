@@ -110,8 +110,8 @@ def readfile(filename):
     # findshortestpath(positionssaved,END_X,END_Y)
     followpath(START_X, START_Y, 0,
                positionssaved)  # call the algorithm on the starting position, first time the direction will be empty
-    shortestpath = managedoors(DESTINATION_X, DESTINATION_Y)
-    print(shortestpath)
+    print( managedoors(DESTINATION_X, DESTINATION_Y))
+
 
 
 def iteratelist(tuple,list,k):
@@ -194,6 +194,7 @@ def managedoors(destx, desy):
     #store key paths
     keypaths = {}
     fastestpath=[]
+    ls=[]
     fastestkeypaths={}
     for lst  in paths.values():
         for elmnt in lst:
@@ -220,28 +221,80 @@ def managedoors(destx, desy):
         if  (START_X,START_Y) in lst:
             ind=lst.index((START_X,START_Y))
             del lst [ ind + 1 : len(lst)]
-            fastestpath=lst.copy()
-            fastestpathtoreturn= foundnewdoor(fastestpath, fastestkeypaths)
-
-    return fastestpathtoreturn
+            fastestpathWithoutKeys=lst.copy()
+    ls= foundnewdoor(fastestpathWithoutKeys, fastestkeypaths)
+            #print(ls)
+    return ls
     
 
-def foundnewdoor(fastestpath,fastestkeypaths):
-    for elmnt in fastestpath:
-        fastestpath.remove(elmnt)
-        checkdoorsandfindkeys(fastestpath,elmnt,fastestkeypaths)
-    return fastestpath
+def foundnewdoor(fastestpathWithoutKeys,fastestkeypaths):
+    fastestpathtoreturn=[fastestpathWithoutKeys.copy()]
 
 
-def checkdoorsandfindkeys(fastestpath, elmnt,fastestkeypaths):
+
+    for elmnt in fastestpathWithoutKeys:
+        fastestpathWithoutKeys.remove(elmnt)
+        checkdoorsandfindkeys(fastestpathtoreturn,fastestpathWithoutKeys,elmnt,fastestkeypaths)
+
+    for q in range(0,len(fastestpathtoreturn)-2):
+        if fastestpathtoreturn[q]==fastestpathtoreturn[q+1]:
+            fastestpathtoreturn.pop(q)
+
+    finallist = []
+
+    for elm in list(reversed(fastestpathtoreturn[0])):
+        finallist.append(elm);
+
+
+    for i in range(0, len(fastestpathtoreturn) - 1):
+        inter = intersection(fastestpathtoreturn[i],fastestpathtoreturn[i + 1]) # intersection between each 2 lists
+
+        intersection_as_list=[]
+        if inter:
+            intersection_as_list = list(inter)
+            intersection_index = fastestpathtoreturn[i].index(intersection_as_list[0])
+            del fastestpathtoreturn[i][intersection_index:] #delete the intersection
+
+        if i != 0 and fastestpathtoreturn[i]:
+            ind=0
+            for elm in list(reversed(fastestpathtoreturn[i])):
+                if ind!=0:
+                    finallist.append(elm);
+
+        if fastestpathtoreturn[i] and inter:
+            for i3 in range(1, len(fastestpathtoreturn[i])):   # add the part to return to the initial common point
+                finallist.append(fastestpathtoreturn[i][i3])
+
+        if inter:
+            ls = list(reversed(fastestpathtoreturn[i + 1]))
+            intersection_index = ls.index(intersection_as_list[0])
+            for r in range(intersection_index, len(ls) ):
+                finallist.append(ls[r])
+
+
+    return finallist
+
+def intersection(lst1, lst2):
+    lst3=lst1.copy()
+    for it1 in lst1:
+        for it2 in lst2:
+            if it1==it2:
+                del lst3[:lst1.index(it1)]
+                return lst3
+
+
+    return 0
+
+
+def checkdoorsandfindkeys(fastestpathtoreturn,fastestpathWithoutKeys, elmnt,fastestkeypaths):
     if maze[str(elmnt[0]) + "," + str(elmnt[1])] in [Values.BLUE_DOOR.value, Values.RED_DOOR.value,Values.YELLOW_DOOR.value,Values.GREEN_DOOR.value]:  # if the fastest route contains a door
         doorcolor = maze[str(elmnt[0]) + "," + str(elmnt[1])]
         keypathofdoor = fastestkeypaths[doorcolor]
-        fastestpath.insert(0, keypathofdoor)
+        fastestpathtoreturn.insert(0, keypathofdoor)
 
         for keyp in keypathofdoor:
             if maze[str(keyp[0]) + "," + str(keyp[1])] in [Values.BLUE_DOOR.value, Values.RED_DOOR.value, Values.YELLOW_DOOR.value,Values.GREEN_DOOR.value]:  # if the fastest route contains a door
-                checkdoorsandfindkeys(fastestpath, keyp,fastestkeypaths)
+                checkdoorsandfindkeys(fastestpathtoreturn,fastestpathWithoutKeys, keyp,fastestkeypaths)
 
 
 def manageghosts():
