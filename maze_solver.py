@@ -1,14 +1,18 @@
-import enum
+import enum, time
 import pgzrun, pgzero
-
-
-
+######################
 
 PIXEL_IMAGE = 50
+
 #it'll allow us to define the dimensions dynamically
 NB_OF_ELEMENT_PER_LINE = 0
 NB_OF_ELEMENT_PER_COLUMN = 0
 
+has_blue_key = 0
+has_green_key = 0
+has_red_key = 0
+has_yellow_key = 0
+game_over = 0
 maze_objects = {
     "1" : "block",
     "0" : "path",
@@ -26,7 +30,6 @@ maze_objects = {
     "z" : "ghost"
 }
 
-
 LAST_X = 0  # stores the last value of x in the maze
 LAST_Y = 0  # stores the last value of Y in the maze
 START_X = 0  # stores the starting position x in the maze
@@ -36,7 +39,6 @@ DESTINATION_Y = 0  # stores the ending position y in the maze
 maze = {}
 positionssaved = []
 shortestpath=[]
-
 
 class Values(enum.Enum):
     MOVABLE = '0'
@@ -54,13 +56,11 @@ class Values(enum.Enum):
     GHOST_RANGE = 'r'
     GHOST = 'z'
 
-
 class Positions(enum.Enum):
     UP = 1
     DOWN = 2
     LEFT = 3
     RIGHT = 4
-
 
 # In this method, we will read the maze from the file, we will store it in a dictionary ,
 # which the key will be a string with "position x,position y" concatenated and separated by a comma,
@@ -83,16 +83,8 @@ def readfile(filename):
         posy = 0  # initialize y
         for line in f:
             linestripped = line.replace(" ", "").rstrip("\n")  # remove "\n from line and white spaces"
-            ####
-            #print(f'NUMber_ligne ==> {NB_OF_ELEMENT_PER_LINE}')
             NB_OF_ELEMENT_PER_LINE += 1  # len(line) of txt
-            #print(f'NUMber_ligne ==> {NB_OF_ELEMENT_PER_LINE}')
-            ####
-            for character in linestripped:
-
-                #print(f'NUMber_colonne ==> {NB_OF_ELEMENT_PER_COLUMN}')
-
-
+            for character in linestripped:              
                 if character is Values.START.value:  # if it is the start position we need to save its coordinates
                     START_X = posx
                     START_Y = posy
@@ -110,9 +102,6 @@ def readfile(filename):
             LAST_Y += 1  # store the last y index for later use
     a=3
     NB_OF_ELEMENT_PER_COLUMN = len(linestripped)
-    print(f'NUMber_colonne ==> {NB_OF_ELEMENT_PER_COLUMN}')
-
-    #print(f'IIIIIIIIIINNNNNNNNNNNNSSSSSSIIIDEEE: {NB_OF_ELEMENT_PER_LINE}')
     #  file closed
 
     # change the maze depending on the ghost range
@@ -124,7 +113,6 @@ def readfile(filename):
     shortestpath = managedoors(DESTINATION_X, DESTINATION_Y)
     print(shortestpath)
 
-#print(f'IIIIIIIIIINNNNNNNNNNNNSSSSSSIIIDEEE2222222222: {NB_OF_ELEMENT_PER_LINE}')
 
 def iteratelist(tuple,list,k):
     for i in range (0,k):
@@ -198,8 +186,6 @@ def fetchshortestpath(destx, desy):
                     counter += 1
                     vai = 1
 
-
-
             counter = 0
     return paths
 
@@ -230,30 +216,20 @@ def managedoors(destx, desy):
                             doorcolor = Values.YELLOW_DOOR.value
                         fastestkeypaths[doorcolor] = k.copy()
 
-
-
-
-
-
-
-
-
     for lst in paths.values():
         if  (START_X,START_Y) in lst:
             ind=lst.index((START_X,START_Y))
             del lst [ ind + 1 : len(lst)] #found the fastest route without considering  doors
             fastestpath=lst.copy()
-
             fastestpathtoreturn= foundnewdoor(fastestpath, fastestkeypaths)
 
+    return fastestpathtoreturn
+    
 
-    return fastestpathtoreturn;
-    a = 3
 def foundnewdoor(fastestpath,fastestkeypaths):
     for elmnt in fastestpath:
         fastestpath.remove(elmnt)
         checkdoorsandfindkeys(fastestpath,elmnt,fastestkeypaths)
-
     return fastestpath
 
 
@@ -353,56 +329,75 @@ def followpath(x, y, direction, positionssaved):
 
 
 # Execution
-
-file_has_been_read = 1
 readfile("txt/Maze4.txt")
+# dimensions of the window
 WIDTH = PIXEL_IMAGE * NB_OF_ELEMENT_PER_COLUMN
 HEIGHT = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
 
 #  sprites
 player = Actor(maze_objects["s"], anchor=(0, 0), pos=(START_X * PIXEL_IMAGE, START_Y * PIXEL_IMAGE))
 
+def close_app():
+    # Close game after Game Over
+    exit()
+
+def update():
+    if keyboard.escape:
+        exit()
 
 def draw():
-    screen.clear()
-    # Build the Maze
-    # knowing that I used a dictionnary, I want to check the type of
-    # the sprite to be sure to insert the correct element
+    if  game_over == 1:
+        screen.draw.text("Game over", (WIDTH/2, HEIGHT/2), color="white",
+            fontsize=100, background="black", #owidth=1, ocolor="red",
+            shadow=(1.0,1.0), scolor="red",  anchor=(0.5,0.5))
+        clock.schedule(close_app,3.0)
+    else:
+        screen.clear()
+        # Build the Maze
+        # knowing that I used a dictionnary, I want to check the type of
+        # the sprite to be sure to insert the correct element
 
-    for k, v in maze.items():
-        splitted_key_pos = k.split(",")
-        key_x = splitted_key_pos[0]
-        key_y = splitted_key_pos[1]
-        x = int(key_x) * PIXEL_IMAGE
-        y = int(key_y) * PIXEL_IMAGE
-        if v == "s":  # starting_point
-            screen.blit(maze_objects["0"], (x, y))
-        else:
-
-            screen.blit(maze_objects[v], (x, y))
-        print(f'Element loaded on screen : {v}')
-    player.draw()
+        for k, v in maze.items():
+            splitted_key_pos = k.split(",")
+            key_x = splitted_key_pos[0]
+            key_y = splitted_key_pos[1]
+            x = int(key_x) * PIXEL_IMAGE
+            y = int(key_y) * PIXEL_IMAGE
+            if v == "s":  # starting_point
+                screen.blit(maze_objects["0"], (x, y))
+            else:
+                screen.blit(maze_objects[v], (x, y))
+    
+        
+        player.draw()
 
 
 def on_key_down(key):
+
+    global has_blue_key
+    global has_green_key 
+    global has_red_key 
+    global has_yellow_key 
+    global game_over
+    
     row = int(player.y / PIXEL_IMAGE)
     column = int(player.x / PIXEL_IMAGE)
     if key == keys.UP:
         row = row - 1
     if key == keys.DOWN:
-        row = row + 1
+        row = row + 1    
     if key == keys.LEFT:
         column = column - 1
     if key == keys.RIGHT:
         column = column + 1
 
     pos_in_str = str(column) + "," + str(row)
-    print(f'Position: {pos_in_str}')
-    print(f'row {row}')
-    print(f'column {column}')
-    print(type(pos_in_str))
+    #print(f'Position: {pos_in_str}')
+    #print(f'row {row}')
+    #print(f'column {column}')
+    #print(type(pos_in_str))
     sprite = maze_objects[maze[pos_in_str]]
-    print(f'sprite found: {sprite}')
+    #print(f'sprite found: {sprite}')
 
     if sprite == "path" or sprite == "pacman":
         x = column * PIXEL_IMAGE
@@ -415,10 +410,73 @@ def on_key_down(key):
         exit()
     elif sprite == "ghost" or sprite == "pink_cell":
         print("Game Over!")
-        exit()
-        #Go out!
+        game_over = 1
+        draw()
+        #exit()
+        
+        
+    #Yellow
+    elif sprite == "yellow_door":
+        if has_yellow_key == 1:
+            x = column * PIXEL_IMAGE
+            y = row * PIXEL_IMAGE
+            animate(player, duration=0.15, pos=(x, y))
+        else:
+            print("Find the yellow key first!")
+    elif sprite == "yellow_key":
+        has_yellow_key = 1
+        print("You have the yellow Key")
+        x = column * PIXEL_IMAGE
+        y = row * PIXEL_IMAGE
+        animate(player, duration=0.15, pos=(x, y))
+
+    #Blue
+    elif sprite == "blue_door":
+        if has_blue_key == 1:
+            x = column * PIXEL_IMAGE
+            y = row * PIXEL_IMAGE
+            animate(player, duration=0.15, pos=(x, y))
+        else:
+            print("Find the blue key first!")
+    elif sprite == "blue_key":
+        has_blue_key = 1
+        print("You have the blue Key")
+        x = column * PIXEL_IMAGE
+        y = row * PIXEL_IMAGE
+        animate(player, duration=0.15, pos=(x, y))
+
+    #Red
+    elif sprite == "red_door":
+        if has_red_key == 1:
+            x = column * PIXEL_IMAGE
+            y = row * PIXEL_IMAGE
+            #
+            animate(player, duration=0.15, pos=(x, y))
+        else:
+            print("Find the red key first!")
+    elif sprite == "red_key":
+        has_red_key = 1
+        print("You have the red Key")
+        x = column * PIXEL_IMAGE
+        y = row * PIXEL_IMAGE
+        animate(player, duration=0.15, pos=(x, y))
+
+    #Green
+    elif sprite == "green_door":
+        if has_green_key == 1:
+            x = column * PIXEL_IMAGE
+            y = row * PIXEL_IMAGE
+            animate(player, duration=0.15, pos=(x, y))
+        else:
+            print("Find the green key first!")
+    elif sprite == "green_key":
+        has_green_key = 1
+        print("You have the green Key")
+        x = column * PIXEL_IMAGE
+        y = row * PIXEL_IMAGE
+        animate(player, duration=0.15, pos=(x, y))
+
     else:
         pass
-
 
 pgzrun.go()
