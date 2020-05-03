@@ -144,11 +144,11 @@ def fetchshortestpath(destx, desy):
         i += 1
         vai = 1
         for l in range(0, j):
-            tuplexy= paths[l][len(paths[l]) - 1]
+            tuplexy = paths[l][len(paths[l]) - 1]
             x = tuplexy[0]
             y = tuplexy[1]
 
-            tuple1 = (x - 1,y)
+            tuple1 = (x - 1, y)
 
             if tuple1 in positionssaved and iteratelist(tuple1,paths,j):
 
@@ -180,7 +180,7 @@ def fetchshortestpath(destx, desy):
                 if vai:
                     paths[l].append(tuple3)
                     counter += 1
-                    vai=1
+                    vai = 1
 
             tuple4 = (x , y - 1)
             if tuple4 in positionssaved and iteratelist(tuple4,paths,j):
@@ -189,7 +189,7 @@ def fetchshortestpath(destx, desy):
                     fakepath = paths[l].copy()
                     fakepath.pop()
                     paths[j - 1] = fakepath
-                    vai=0
+                    vai = 0
                 if vai:
                     paths[l].append(tuple4)
                     counter += 1
@@ -388,13 +388,14 @@ def followpath(x, y, direction, positionssaved):
         followpath(x + 1, y, Positions.RIGHT, positionssaved)  # right
 
 # Execution
-readfile("txt/Maze4.txt")
+readfile("txt/Maze3.txt")
 # dimensions of the window
 WIDTH = PIXEL_IMAGE * NB_OF_ELEMENT_PER_COLUMN
 HEIGHT = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
 
 #  sprites
 player = Actor(maze_objects["s"], anchor=(0, 0), pos=(START_X * PIXEL_IMAGE, START_Y * PIXEL_IMAGE))
+
 
 def close_app():
     # Close game after Game Over
@@ -407,6 +408,8 @@ def update():
 def draw():
 
     global F1_PRESSED, ENDPOINT, PLAYER_MOVE
+
+
 
     if game_over == 1: # if it enters a ghost cell
         screen.draw.text("Game over", (WIDTH/2, HEIGHT/2), color="white",
@@ -438,6 +441,7 @@ def draw():
         # knowing that I used a dictionnary, I want to check the type of
         # the sprite to be sure to insert the correct element
 
+
         for k, v in maze.items():
             splitted_key_pos = k.split(",")
             key_x = splitted_key_pos[0]
@@ -450,6 +454,11 @@ def draw():
                 screen.blit(maze_objects[v], (x, y))
 
         player.draw()
+        test=screen.draw.text("Press F1 for hints, F2 to continue", (150, 10), color="white",
+                         fontsize=20, background="black",  # owidth=1, ocolor="red",
+                         shadow=(1.0, 1.0), scolor="red", anchor=(0.5, 0.5))
+
+
 
 def on_key_down(key):
 
@@ -461,6 +470,8 @@ def on_key_down(key):
     global ENDPOINT
     global F1_PRESSED
     global PLAYER_MOVE
+
+
     
     row = int(player.y / PIXEL_IMAGE)
     column = int(player.x / PIXEL_IMAGE)
