@@ -7,6 +7,10 @@ PIXEL_IMAGE = 50
 #it'll allow us to define the dimensions dynamically
 NB_OF_ELEMENT_PER_LINE = 0
 NB_OF_ELEMENT_PER_COLUMN = 0
+n = 0
+F1_PRESSED = 0
+ENDPOINT = 0
+PLAYER_MOVE = 0
 
 has_blue_key = 0
 has_green_key = 0
@@ -77,6 +81,8 @@ def readfile(filename):
     global shortestpath
     global NB_OF_ELEMENT_PER_LINE
     global NB_OF_ELEMENT_PER_COLUMN
+    global n
+    global F1_PRESSED
 
     with open(filename, 'r') as f:
         posx = 0  # initialize x
@@ -110,7 +116,10 @@ def readfile(filename):
     # findshortestpath(positionssaved,END_X,END_Y)
     followpath(START_X, START_Y, 0,
                positionssaved)  # call the algorithm on the starting position, first time the direction will be empty
-    print( managedoors(DESTINATION_X, DESTINATION_Y))
+    #print( managedoors(DESTINATION_X, DESTINATION_Y))
+    shortestpath =  managedoors(DESTINATION_X, DESTINATION_Y)
+
+    print(shortestpath)
 
 
 
@@ -271,8 +280,8 @@ def foundnewdoor(fastestpathWithoutKeys,fastestkeypaths):
             for r in range(intersection_index, len(ls) ):
                 finallist.append(ls[r])
 
-
     return finallist
+
 
 def intersection(lst1, lst2):
     lst3=lst1.copy()
@@ -281,8 +290,6 @@ def intersection(lst1, lst2):
             if it1==it2:
                 del lst3[:lst1.index(it1)]
                 return lst3
-
-
     return 0
 
 
@@ -368,7 +375,6 @@ def followpath(x, y, direction, positionssaved):
     else:
         return 0
 
-
     if direction != Positions.DOWN:  # don't  try going up if the direction is down,because we were there already
         followpath(x, y - 1, Positions.UP, positionssaved)  # up
 
@@ -380,7 +386,6 @@ def followpath(x, y, direction, positionssaved):
 
     if direction != Positions.LEFT:  # don't  try going right if the direction is down,because we were there already
         followpath(x + 1, y, Positions.RIGHT, positionssaved)  # right
-
 
 # Execution
 readfile("txt/Maze4.txt")
@@ -400,12 +405,34 @@ def update():
         exit()
 
 def draw():
-    if  game_over == 1:
+
+    global F1_PRESSED, ENDPOINT, PLAYER_MOVE
+
+    if game_over == 1: # if it enters a ghost cell
         screen.draw.text("Game over", (WIDTH/2, HEIGHT/2), color="white",
             fontsize=100, background="black", #owidth=1, ocolor="red",
             shadow=(1.0,1.0), scolor="red",  anchor=(0.5,0.5))
-        clock.schedule(close_app,3.0)
-    else:
+        clock.schedule(close_app,10.0)
+    elif ENDPOINT == 1:
+        if PLAYER_MOVE == len(shortestpath)-1:
+            screen.draw.text("You Found the Shortest Path ", (WIDTH / 2, HEIGHT / 2), color="white",
+                         fontsize=85, background="black",  # owidth=1, ocolor="red",
+                         shadow=(1.0, 1.0), scolor="blue", anchor=(0.5, 0.5))
+            clock.schedule(close_app, 10.0)
+        else:
+            screen.draw.text("not the shortest Path. Game Over! ", (WIDTH / 2, HEIGHT / 2), color="white",
+                             fontsize=75, background="black",  # owidth=1, ocolor="red",
+                             shadow=(1.0, 1.0), scolor="red", anchor=(0.5, 0.5))
+            clock.schedule(close_app, 10.0)
+
+    elif F1_PRESSED == 1: # show the shortest path on screen
+        screen.clear()
+        for i in range(len(shortestpath)):
+            x_sp = shortestpath[i][0] * PIXEL_IMAGE
+            y_sp = shortestpath[i][1] * PIXEL_IMAGE
+            screen.blit(maze_objects["0"], (x_sp,y_sp))
+
+    else: # display the maze
         screen.clear()
         # Build the Maze
         # knowing that I used a dictionnary, I want to check the type of
@@ -421,10 +448,8 @@ def draw():
                 screen.blit(maze_objects["0"], (x, y))
             else:
                 screen.blit(maze_objects[v], (x, y))
-    
-        
-        player.draw()
 
+        player.draw()
 
 def on_key_down(key):
 
@@ -433,25 +458,33 @@ def on_key_down(key):
     global has_red_key 
     global has_yellow_key 
     global game_over
+    global ENDPOINT
+    global F1_PRESSED
+    global PLAYER_MOVE
     
     row = int(player.y / PIXEL_IMAGE)
     column = int(player.x / PIXEL_IMAGE)
     if key == keys.UP:
         row = row - 1
+        PLAYER_MOVE += 1
     if key == keys.DOWN:
-        row = row + 1    
+        row = row + 1
+        PLAYER_MOVE += 1
     if key == keys.LEFT:
         column = column - 1
+        PLAYER_MOVE += 1
     if key == keys.RIGHT:
         column = column + 1
+        PLAYER_MOVE += 1
+    if key == keys.F1:
+        F1_PRESSED = 1
+        draw()
+    if key == keys.F2:
+        F1_PRESSED = 0
+        draw()
 
     pos_in_str = str(column) + "," + str(row)
-    #print(f'Position: {pos_in_str}')
-    #print(f'row {row}')
-    #print(f'column {column}')
-    #print(type(pos_in_str))
     sprite = maze_objects[maze[pos_in_str]]
-    #print(f'sprite found: {sprite}')
 
     if sprite == "path" or sprite == "pacman":
         x = column * PIXEL_IMAGE
@@ -461,13 +494,13 @@ def on_key_down(key):
         player.x = column * PIXEL_IMAGE
         player.y = row * PIXEL_IMAGE
         print("You Reached the end")
-        exit()
+        ENDPOINT = 1
+
     elif sprite == "ghost" or sprite == "pink_cell":
         print("Game Over!")
         game_over = 1
         draw()
-        #exit()
-        
+
         
     #Yellow
     elif sprite == "yellow_door":
@@ -483,6 +516,7 @@ def on_key_down(key):
         x = column * PIXEL_IMAGE
         y = row * PIXEL_IMAGE
         animate(player, duration=0.15, pos=(x, y))
+        maze[pos_in_str] = "0"
 
     #Blue
     elif sprite == "blue_door":
@@ -498,6 +532,7 @@ def on_key_down(key):
         x = column * PIXEL_IMAGE
         y = row * PIXEL_IMAGE
         animate(player, duration=0.15, pos=(x, y))
+        maze[pos_in_str] = "0"
 
     #Red
     elif sprite == "red_door":
@@ -514,6 +549,7 @@ def on_key_down(key):
         x = column * PIXEL_IMAGE
         y = row * PIXEL_IMAGE
         animate(player, duration=0.15, pos=(x, y))
+        maze[pos_in_str] = "0"
 
     #Green
     elif sprite == "green_door":
@@ -529,7 +565,7 @@ def on_key_down(key):
         x = column * PIXEL_IMAGE
         y = row * PIXEL_IMAGE
         animate(player, duration=0.15, pos=(x, y))
-
+        maze[pos_in_str] = "0"
     else:
         pass
 
