@@ -11,6 +11,11 @@ n = 0
 F1_PRESSED = 0
 ENDPOINT = 0
 PLAYER_MOVE = 0
+F3_PRESSED = 2
+
+cpt = 1
+x_pos = 0
+y_pos = 0
 
 has_blue_key = 0
 has_green_key = 0
@@ -83,6 +88,8 @@ def readfile(filename):
     global NB_OF_ELEMENT_PER_COLUMN
     global n
     global F1_PRESSED
+    global prev_x
+    global prev_y
 
     with open(filename, 'r') as f:
         posx = 0  # initialize x
@@ -120,6 +127,8 @@ def readfile(filename):
     shortestpath =  managedoors(DESTINATION_X, DESTINATION_Y)
 
     print(shortestpath)
+    prev_x = START_X
+    prev_y = START_Y
 
 
 
@@ -388,7 +397,7 @@ def followpath(x, y, direction, positionssaved):
         followpath(x + 1, y, Positions.RIGHT, positionssaved)  # right
 
 # Execution
-readfile("txt/Maze3.txt")
+readfile("txt/Maze4.txt")
 # dimensions of the window
 WIDTH = PIXEL_IMAGE * NB_OF_ELEMENT_PER_COLUMN
 HEIGHT = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
@@ -402,13 +411,28 @@ def close_app():
     exit()
 
 def update():
+    global inc_x, inc_y,dec_x,dec_y,F3_PRESSED
     if keyboard.escape:
         exit()
+    if ENDPOINT == 1:
+        draw()
+    #if F3_PRESSED == 0:
+    #    play_anim()
+
+"""def play_anim():
+    global cpt, F3_PRESSED,x_pos,y_pos
+
+    if cpt < len(shortestpath):
+        x_pos = shortestpath[cpt][0] * PIXEL_IMAGE
+        y_pos = shortestpath[cpt][1] * PIXEL_IMAGE
+
+        F3_PRESSED = 1
+        #clock.schedule(draw, 30.0)
+"""
 
 def draw():
 
-    global F1_PRESSED, ENDPOINT, PLAYER_MOVE
-
+    global F1_PRESSED, ENDPOINT, PLAYER_MOVE, F3_PRESSED, cpt, x_pos, y_pos
 
 
     if game_over == 1: # if it enters a ghost cell
@@ -417,7 +441,7 @@ def draw():
             shadow=(1.0,1.0), scolor="red",  anchor=(0.5,0.5))
         clock.schedule(close_app,10.0)
     elif ENDPOINT == 1:
-        if PLAYER_MOVE == len(shortestpath)-1:
+        if PLAYER_MOVE <= len(shortestpath)-1:
             screen.draw.text("You Found the Shortest Path ", (WIDTH / 2, HEIGHT / 2), color="white",
                          fontsize=85, background="black",  # owidth=1, ocolor="red",
                          shadow=(1.0, 1.0), scolor="blue", anchor=(0.5, 0.5))
@@ -430,18 +454,30 @@ def draw():
 
     elif F1_PRESSED == 1: # show the shortest path on screen
         screen.clear()
+        screen.draw.text("Press F1 for hints, F2 to continue", (150, 10), color="white",
+                         fontsize=20, background="black",  # owidth=1, ocolor="red",
+                         shadow=(1.0, 1.0), scolor="red", anchor=(0.5, 0.5))
         for i in range(len(shortestpath)):
             x_sp = shortestpath[i][0] * PIXEL_IMAGE
             y_sp = shortestpath[i][1] * PIXEL_IMAGE
             screen.blit(maze_objects["0"], (x_sp,y_sp))
+    elif F3_PRESSED == 1:
+
+        print('moves made in F3 :::::')
+        print(f'X-- {x_pos}')
+        print(f'Y-- {y_pos}')
+        animate(player, pos=(x_pos,y_pos), duration=0.15)
+        cpt +=1
+        print(f'Cpt--{cpt}')
+        F3_PRESSED = 0
+
 
     else: # display the maze
         screen.clear()
+
         # Build the Maze
         # knowing that I used a dictionnary, I want to check the type of
         # the sprite to be sure to insert the correct element
-
-
         for k, v in maze.items():
             splitted_key_pos = k.split(",")
             key_x = splitted_key_pos[0]
@@ -454,10 +490,13 @@ def draw():
                 screen.blit(maze_objects[v], (x, y))
 
         player.draw()
-        test=screen.draw.text("Press F1 for hints, F2 to continue", (150, 10), color="white",
+        screen.draw.text("Press F1 for hints, F2 to continue", (150, 10), color="white",
                          fontsize=20, background="black",  # owidth=1, ocolor="red",
                          shadow=(1.0, 1.0), scolor="red", anchor=(0.5, 0.5))
 
+        screen.draw.text("Press F1 for hints, F2 to continue", (150, 10), color="white",
+                         fontsize=20, background="black",  # owidth=1, ocolor="red",
+                         shadow=(1.0, 1.0), scolor="red", anchor=(0.5, 0.5))
 
 
 def on_key_down(key):
@@ -470,6 +509,8 @@ def on_key_down(key):
     global ENDPOINT
     global F1_PRESSED
     global PLAYER_MOVE
+    global F3_PRESSED
+    global cpt, x_pos,y_pos
 
 
     
@@ -493,6 +534,12 @@ def on_key_down(key):
     if key == keys.F2:
         F1_PRESSED = 0
         draw()
+    if key == keys.F3:
+        if cpt < len(shortestpath):
+            x_pos = shortestpath[cpt][0] * PIXEL_IMAGE
+            y_pos = shortestpath[cpt][1] * PIXEL_IMAGE
+            F3_PRESSED = 1
+
 
     pos_in_str = str(column) + "," + str(row)
     sprite = maze_objects[maze[pos_in_str]]
@@ -511,7 +558,6 @@ def on_key_down(key):
         print("Game Over!")
         game_over = 1
         draw()
-
         
     #Yellow
     elif sprite == "yellow_door":
