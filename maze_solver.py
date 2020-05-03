@@ -1,5 +1,6 @@
 import enum, time
 import pgzrun, pgzero
+import sys
 ######################
 
 PIXEL_IMAGE = 50
@@ -8,7 +9,6 @@ PIXEL_IMAGE = 50
 NB_OF_ELEMENT_PER_LINE = 0
 NB_OF_ELEMENT_PER_COLUMN = 0
 n = 0
-F1_PRESSED = 0
 ENDPOINT = 0
 PLAYER_MOVE = 0
 F3_PRESSED = 2
@@ -87,7 +87,6 @@ def readfile(filename):
     global NB_OF_ELEMENT_PER_LINE
     global NB_OF_ELEMENT_PER_COLUMN
     global n
-    global F1_PRESSED
     global prev_x
     global prev_y
 
@@ -397,7 +396,18 @@ def followpath(x, y, direction, positionssaved):
         followpath(x + 1, y, Positions.RIGHT, positionssaved)  # right
 
 # Execution
-readfile("txt/Maze4.txt")
+
+# Execution
+
+
+if sys.argv[1] is  None:
+    print("Provide the name of the file")
+    exit
+else:
+    fl = sys.argv[1]
+    print(fl)
+    readfile(fl)
+
 # dimensions of the window
 WIDTH = PIXEL_IMAGE * NB_OF_ELEMENT_PER_COLUMN
 HEIGHT = PIXEL_IMAGE * NB_OF_ELEMENT_PER_LINE
@@ -432,7 +442,7 @@ def update():
 
 def draw():
 
-    global F1_PRESSED, ENDPOINT, PLAYER_MOVE, F3_PRESSED, cpt, x_pos, y_pos
+    global  ENDPOINT, PLAYER_MOVE, F3_PRESSED, cpt, x_pos, y_pos
 
 
     if game_over == 1: # if it enters a ghost cell
@@ -452,15 +462,7 @@ def draw():
                              shadow=(1.0, 1.0), scolor="red", anchor=(0.5, 0.5))
             clock.schedule(close_app, 10.0)
 
-    elif F1_PRESSED == 1: # show the shortest path on screen
-        screen.clear()
-        screen.draw.text("Press F1 for hints, F2 to continue", (150, 10), color="white",
-                         fontsize=20, background="black",  # owidth=1, ocolor="red",
-                         shadow=(1.0, 1.0), scolor="red", anchor=(0.5, 0.5))
-        for i in range(len(shortestpath)):
-            x_sp = shortestpath[i][0] * PIXEL_IMAGE
-            y_sp = shortestpath[i][1] * PIXEL_IMAGE
-            screen.blit(maze_objects["0"], (x_sp,y_sp))
+
     elif F3_PRESSED == 1:
 
         print('moves made in F3 :::::')
@@ -490,13 +492,10 @@ def draw():
                 screen.blit(maze_objects[v], (x, y))
 
         player.draw()
-        screen.draw.text("Press F1 for hints, F2 to continue", (150, 10), color="white",
+        screen.draw.text("To automate, keep pressing F3", (150, 10), color="white",
                          fontsize=20, background="black",  # owidth=1, ocolor="red",
                          shadow=(1.0, 1.0), scolor="red", anchor=(0.5, 0.5))
 
-        screen.draw.text("Press F1 for hints, F2 to continue", (150, 10), color="white",
-                         fontsize=20, background="black",  # owidth=1, ocolor="red",
-                         shadow=(1.0, 1.0), scolor="red", anchor=(0.5, 0.5))
 
 
 def on_key_down(key):
@@ -507,7 +506,6 @@ def on_key_down(key):
     global has_yellow_key 
     global game_over
     global ENDPOINT
-    global F1_PRESSED
     global PLAYER_MOVE
     global F3_PRESSED
     global cpt, x_pos,y_pos
@@ -528,12 +526,6 @@ def on_key_down(key):
     if key == keys.RIGHT:
         column = column + 1
         PLAYER_MOVE += 1
-    if key == keys.F1:
-        F1_PRESSED = 1
-        draw()
-    if key == keys.F2:
-        F1_PRESSED = 0
-        draw()
     if key == keys.F3:
         if cpt < len(shortestpath):
             x_pos = shortestpath[cpt][0] * PIXEL_IMAGE
